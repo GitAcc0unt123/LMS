@@ -1,0 +1,22 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}учебные курсы{% endblock %}
+
+{% block content %}
+
+<h4>ведёт курсы</h4>
+{% for course in courses_owner %}
+    <a align="left" href="course/{{ course.id }}">{{ course.title }}</a><br>
+{% empty %}
+    нет курсов
+{% endfor %}
+
+<hr>
+<h4>записан на курсы</h4>
+{% for course in courses_subscribe %}
+    <a align="left" href="course/{{ course.id }}">{{ course.title }}</a><br>
+{% empty %}
+    нет курсов
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,107 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block style %}
+<style>
+    .cl-btn {cursor: pointer; position: relative; top: -10; left: 440;}
+    .cl-btn:before, .cl-btn:after {content: ""; position: absolute; width: 18px; height: 4px; background: red;}
+    .cl-btn:before {transform: rotate(45deg);}
+    .cl-btn:after {transform: rotate(-45deg);}
+</style>
+{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/task.js"></script>
+
+<h4><a href="/course/{{ task.course_element.course.id }}">&lt;-- вернуться к курсу</a></h4>
+
+{% if user_edit_task %}
+    <a href="/task/{{ task.id }}/edit">редактировать</a><br>
+    <a href="/task/{{ task.id }}/evaluate">работ на проверку: {{ check_answers }}</a>
+{% endif %}
+
+<h2>{{ task.title }}</h2>
+{% for line in task_description %}
+    {{ line }}<br>
+{% endfor %}
+
+{% if user_subscribed %}
+    <hr>
+    <h2>Состояние ответа</h2>
+    <table cols="2" rules="all">
+        <tr>
+            <td>Состояние ответа на задание</td>
+            <td>
+                {% if task_answer.get_TaskAnswerMark %}
+                    оценено: {{ task_answer.get_TaskAnswerMark.mark }} / {{ task.mark_max }} | время оценки {{ task_answer.get_TaskAnswerMark.datetime_evaluate }}
+                {% elif task_answer %}
+                    отправлено для оценивания
+                {% else %}
+                    нет ответа
+                {% endif %}
+            </td>
+        </tr>
+        <tr><td>Последний срок сдачи</td><td>{{ task.deadline_visible|date:"G:i d.m.Y" }} | {{ task.deadline_true|date:"G:i d.m.Y" }}</td></tr>
+        <tr><td>Макс. кол-во файлов</td><td>{{ task.limit_files_count }}</td></tr>
+        <tr><td>Макс. размер файлов</td><td>{{ task.limit_files_memory_MB }}MB</td></tr>
+
+        {% if task_answer is None %}
+        <tr><td>Последнее изменение</td><td>-</td></tr>
+        <tr><td>Ответ в виде файла</td><td>-</td></tr>
+        {% else %}
+        <tr><td>Последнее изменение</td><td>{{ task_answer.datetime_load }}</td></tr>
+        <tr>
+            <td>Ответ в виде файла</td>
+            <td>
+                <ul type="disc" id="file_list">
+                    {% for file in task_answer.files.all %}
+                    <li id="file_id_{{ file.id }}">
+                        <a href="/files/{{ file.id }}/{{ file.filename }}" download>{{ file.filename }}</a>
+                        {% if can_set_task_answer %}
+                        <div class="cl-btn" onClick="deleteFile({{ file.id }})"></div>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    загруженных файлов нет
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+
+    {% if task_answer.get_TaskAnswerMark %}
+        отзыв: {{task_answer.get_TaskAnswerMark.review}}<br>
+        преподаватель: {{task_answer.get_TaskAnswerMark.teacher}}<br>
+    {% endif %}
+
+    {% if can_set_task_answer %}
+        <hr>
+        <input type="file" class="form-control-file" id="id_upload_files" multiple/>
+        <button class="btn btn-primary" onClick="uploadFiles({{task.id}}, false)">Загрузить файлы</button>
+    {% endif %}
+{% endif %}
+
+{% if task.comments_is_on %}
+<hr>
+<h4>комментарии</h4>
+<div id="id_comment_list">
+    {% for comment in comments %}
+    <div>
+        <pre>{{ comment.text }}</pre>
+        <span>
+            <a href="/user/{{ comment.user_id }}">{{ comment.user.username }}</a>
+            {{ comment.datetime }}
+            <button onclick="deleteComment({{ comment.id }})">удалить</button>
+        </span>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+<p><textarea rows="10" cols="45" id="comment_text"></textarea></p>
+<p><input type="button" value="отправить" onClick="addComment({{ task.id }})" /></p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,15 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}авторизация{% endblock %}
+
+{% block content %}
+<form method="post" action="">
+    {% csrf_token %}
+    {{ authenticationForm }}
+    {% if next %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    {% endif %}
+    <input type="submit" value="войти" />
+</form>
+<!--a href="/reset_password">восстановление пароля</a-->
+{% endblock %}

@@ -1,0 +1,58 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<div>
+<h4><a href="/course/{{ test.course_element.course.id }}">&lt;-- вернуться к курсу</a></h4>
+
+{% if can_edit %}
+<!--a href="/test/{{test.id}}/edit">редактировать</a-->
+{% endif %}
+
+<h2>{{ test.title }}</h2>
+{% for line in test_description %}
+{{ line }}<br>
+{% endfor %}
+<hr>
+<table cols="2" rules="all">
+    <tr><td>чистые баллы</td><td>{{ test.mark_outer }}</td></tr>
+    <tr><td>кол-во попыток</td><td>{{ test.number_of_attempts }}</td></tr>
+    <tr><td>кол-во вопросов</td><td>{{ test.test_questions.count }}</td></tr>
+    <tr><td>начало тестирования</td><td>{{ test.start|date:"Y.m.d H:i:s"}}</td></tr>
+    <tr><td>окончание тестирования</td><td>{{ test.end|date:"Y.m.d H:i:s"}}</td></tr>
+    <tr><td>время на прохождение теста</td><td>{{ test.duration }}</td></tr>
+</table>
+
+<hr>
+<h5>завершённые попытки</h5>
+{% if finishedTestResults is not None %}
+    {% for testResult in finishedTestResults %}
+    <b>попытка {{ forloop.counter }}: </b>
+    начало {{ testResult.start|date:"Y.m.d H:i:s"}} |
+    конец {{ testResult.end|date:"Y.m.d H:i:s"}} |
+    кол-во баллов: <b>{{ testResult.mark|floatformat:2 }}</b>
+    <br>
+    {% empty %}
+    отсутствуют
+    {% endfor %}
+{% endif %}
+
+{% if activeTestResults is not None %}
+<hr>
+<h5>незавершённое прохождение теста</h5>
+<b>начато {{ activeTestResults.start|date:"Y.m.d H:i:s" }}</b><br>
+<b>завершится {{ activeTestResultsEndTime|date:"Y.m.d H:i:s" }}</b>
+<form action="/test/{{test.id}}/start/{{ activeTestResults.id }}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="продолжить тест" />
+</form>
+{% elif can_start_new_test %}
+<hr>
+<form action="/test/{{test.id}}/start" method="post">
+    {% csrf_token %}
+    <input type="submit" value="начать тест" />
+</form>
+{% endif %}
+</div>
+{% endblock %}

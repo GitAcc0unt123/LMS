@@ -1,0 +1,24 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}настройки пользователя{% endblock %}
+
+{% block content %}
+<!--отображать в каких группах состоит-->
+<!--кнопки тёмной темы и отправки уведомлений на почту-->
+<h2>настройки</h2>
+<form method="post" action="/update_settings">
+    {% csrf_token %}
+    {{ userChangeForm.as_p }}
+    <input type="submit" value="сохранить" />
+</form>
+<hr>
+<h2>смена пароля</h2>
+<form method="post" action="/update_password">
+    {% csrf_token %}
+    {{ passwordChangeForm.as_p }}
+    <input type="submit" value="сменить пароль"/>
+</form>
+<!--скачать свои данные (request account info)-->
+<!--delete my account and personal data</button-->
+<!--удалить аккаунт и все данные через 1 год без активности на сайте (авторизация, авторизованное посещение сайта)-->
+{% endblock %}

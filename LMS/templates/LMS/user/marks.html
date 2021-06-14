@@ -1,0 +1,30 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}мои оценки{% endblock %}
+
+{% block content %}
+<h4>Оценки в курсах на которые записан</h4>
+{% for course, course_res, course_mark, course_mark_max in courses %}
+    <hr>
+    <h4><a href="/course/{{ course.id }}">{{ course }}</a> {{ course_mark|floatformat:2 }}/{{ course_mark_max }}</h4>
+
+    {% for element, elem_res, mark, mark_max in course_res %}
+        <hr>
+        <h5>{{ element.title }} - {{ mark|floatformat:2 }}/{{ mark_max }}</h5>
+        
+        {% for tasks, tasks_mark, tasks_mark_max, tests, tests_mark, tests_mark_max in elem_res %}
+
+            <b>задания - {{ tasks_mark|floatformat:2 }}/{{ tasks_mark_max }}</b><br>
+            {% for task, mark, mark_max in tasks %}
+                <a href="/task/{{ task.id }}">{{ task.title}}</a> - {{ mark|floatformat:2 }}/{{ mark_max }}<br>
+            {% endfor %}
+
+            <b>тесты - {{ tests_mark|floatformat:2 }}/{{ tests_mark_max }}</b><br>
+            {% for test, mark, mark_max in tests %}
+                <a href="/test/{{ test.id }}">{{ test.title }}</a> - {{ mark|floatformat:2 }}/{{ mark_max }}<br>
+            {% endfor %}
+
+        {% endfor %}
+    {% endfor %}
+{% endfor %}
+{% endblock %}

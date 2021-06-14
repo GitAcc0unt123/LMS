@@ -1,0 +1,121 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}создание теста{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+
+<script src="/admin/jsi18n/"></script>
+<script src="/static/admin/js/calendar.js"></script>
+<script src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+<script src="/static/admin/js/core.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
+{% endblock %}
+
+{% block script %}
+<script>
+    var questions_order = 1;
+
+    function add_question_answer() {
+        const answers = this.parentNode.getElementsByTagName('div')[0];
+
+        const label = document.createElement('label');
+        //label.for = "question2";
+        label.innerHTML = "вариант ответа";
+
+        const input = document.createElement('input');
+        //input.id = 'question2';
+        input.type = "text";
+        input.name = 'answer_values';
+        input.maxLength = 150;
+        input.size = 100;
+        input.required = true;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = "checkbox";
+        checkbox.name = 'answer_true';
+        //checkbox.value = answers.getElementsByTagName('label').length;
+
+        answers.appendChild(label);
+        answers.appendChild(input);
+        answers.appendChild(checkbox);
+        answers.appendChild(document.createElement('br'));
+    }
+    function remove_question_answer() {
+        const answers = this.parentNode.getElementsByTagName('div')[0];
+
+        answers.lastChild.remove();
+        answers.lastChild.remove();
+        answers.lastChild.remove();
+        answers.lastChild.remove();
+        answers.lastChild.remove();
+    }
+
+    function add_question() {
+        // не более 70 вопросов на странице
+        const questions_div = document.getElementById('id_questions');
+        const questions_count = questions_div.getElementsByTagName('div').length;
+
+        if (questions_count < 70) {
+            ++questions_order;
+            const clone = questions_div.getElementsByTagName('div')[0].cloneNode(true);
+
+            clone.getElementsByTagName('b')[0].innerHTML = 'вопрос ' + questions_order;
+            clone.getElementsByTagName('textarea')[0].value = "";
+
+            const inputs = clone.getElementsByTagName('input');
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = '';
+            }
+            questions_div.appendChild(clone);
+        } else {
+            showMessage('в тесте не более 70 вопросов');
+        }
+    }
+    function remove_question() {
+        // не менее 1 вопроса на странице
+        const questions_div = document.getElementById('id_questions');
+        const questions_count = questions_div.getElementsByTagName('div').length;
+
+        if (1 < questions_count) {
+            this.parentNode.remove();
+            //--questions_order;
+        } else {
+            showMessage('в тесте не менее 1 вопроса');
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<form onsubmit="createTest({{course_element_id}}); return false" >
+    {{ testModelForm.as_p }}
+    <hr>
+
+    <div id="id_questions">
+        <div class="question">
+            <b>вопрос 1</b><button type="button" onclick="remove_question.apply(this);">удалить вопрос</button><br>
+            <!--подставить форму модели для вопроса-->
+            <label>Текст вопроса:</label> <textarea name="question_text" class=""cols="100" rows="5" maxlength="500" required></textarea><br>
+            <label>Кол-во грязных баллов за вопрос:</label> <input type="number" name="max_mark" step="1" required min="0" max="999"><br>
+
+            <label>Тип вопроса:</label>
+            {{ testQuestionModelForm.answer_type }}
+
+            <div></div>
+            <button type="button" onclick="remove_question_answer.apply(this);">удалить последний вариант ответа</button>
+            <button type="button" onclick="add_question_answer.apply(this);">добавить вариант ответа</button>
+            <hr>
+        </div>
+    </div>
+
+    <br><button type="button" onclick="add_question();">добавить вопрос</button>
+    <hr><input type="submit" value="создать тест" />
+</form>
+<button onclick="createTest({{course_element_id}})">жмяк</button>
+
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/test.js"></script>
+{% endblock %}

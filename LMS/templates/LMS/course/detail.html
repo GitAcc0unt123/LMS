@@ -1,0 +1,70 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/course.js"></script>
+
+{% if permission_edit %}
+<a href="/course/{{ course.id }}/edit">редактировать</a>
+{% endif %}
+
+{% if permission_subscribe %}
+    <br>
+    {% if course.key %}
+        <!--запись через ключ-->
+        <input type="password" id="key_field" placeholder="secret key" >
+        <input type="button" id="key_button" value="записаться по ключу" onClick="courseSubscribeState({{ course.id }}, true, true)" />
+    {% endif %}
+    {% if in_group %}
+        <br>
+        <!--запись через группу-->
+        <input type="button" id="group_button" value="запись через группу" onClick="courseSubscribeState({{ course.id }}, true, false)" />
+    {% endif %}
+    {% if not course.key and not course.groups.exists %}
+        <!--свободная запись-->
+        <input type="button" id="free_button" value="свободная запись" onClick="courseSubscribeState({{ course.id }}, true, false)" />
+    {% endif %}
+{% elif is_subscriber %}
+    <!--покинуть курс-->
+    <br>
+    <input type="button" id="unsubscribe_button" value="покинуть курс" onClick="courseSubscribeState({{ course.id }}, false, false)" />
+{% endif %}
+
+<div>
+    <h3>{{ course.title }}</h3>
+    {% for line in course_description %}
+        {{ line }}<br>
+    {% endfor %}
+</div>
+<hr>
+
+<div>
+    {% for element in course.course_elements.all %}
+    <h4>{{ element.title }}</h4>
+    {% for line in element.description_rows %}
+        {{ line }}<br>
+    {% endfor %}
+    <div>
+        <b>Материалы</b><br>
+        {% for file in element.files.all %}
+        <a href="/files/{{ file.id }}/{{ file.filename }}" download>{{ file.filename }}</a><br>
+        {% endfor %}
+    </div>
+    <div>
+        <b>Задания</b><br>
+        {% for task in element.tasks.all %}
+        <a href="/task/{{ task.id }}">{{ task.title }} ({{ task.execute_answer|yesno:"automatic,non-automatic," }})</a><br>
+        {% endfor %}
+    </div>
+    <div>
+        <b>Тесты</b><br>
+        {% for test in element.tests.all %}
+        <a href="/test/{{ test.id }}">{{ test.title }}</a><br>
+        {% endfor %}
+    </div>
+    {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

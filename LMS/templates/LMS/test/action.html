@@ -1,0 +1,42 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<h2>{{ test.title }}</h2>
+
+окончание в {{ deadline|date:"H:i:s" }}<br>
+<!--оставшееся время-->
+{% for question in test.test_questions.all %}
+<big><big><big><a href="/test/{{ test.id }}/result/{{ testResult.id }}/question/{{ question.id }}">{{ forloop.counter }}</a></big></big></big>
+{% endfor %}
+<hr>
+
+<div class="bar-line">
+    <div class="bar-line__right">
+        <form action="/test/{{test.id}}/result/{{testResult.id}}/question/{{question.id}}" method="post">
+            {% csrf_token %}
+            {{ question.question_text }}<br>
+
+            {% if question.answer_type == 'free' %}
+                <input type="text" name="str" />
+            {% elif question.answer_type == 'one' %}
+                {% for answer in question_answers %}
+                    <input type="radio" name="indexes" value="{{ forloop.counter0 }}"> {{answer}}<br>
+                {% endfor %}
+            {% else %}
+                {% for answer in question_answers %}
+                    <input type="checkbox" name="indexes" value="{{ forloop.counter0 }}"> {{answer}}<br>
+                {% endfor %}
+            {% endif %}
+            <input type="submit" value="ответить на вопрос" />
+        </form>
+    </div>
+</div>
+
+<hr>
+
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/test.js"></script>
+<button onclick="finishTest({{ result_id}}, {{test.id }})">Завершить тест</button>
+{% endblock %}

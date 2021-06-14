@@ -1,0 +1,23 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}редактирование задачи{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+
+<script src="/admin/jsi18n/"></script>
+<script src="/static/admin/js/calendar.js"></script>
+<script src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+<script src="/static/admin/js/core.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
+{% endblock %}
+
+{% block content %}
+<form action="" method="post">
+    {% csrf_token %}
+    {{ taskModelForm.as_p }}
+    <input type="submit" value="сохранить" />
+</form>
+{% endblock %}

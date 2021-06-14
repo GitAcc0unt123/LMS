@@ -1,0 +1,18 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}уведомления{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/user.js"></script>
+
+{% for notice in notices %}
+<div id='notification_id_{{ notice.id }}'>
+    {{ notice.datetime }}<br>{{ notice.text }}
+    <input type="button" value="удалить (id={{ notice.id }})" onClick="deleteNotification({{ notice.id }})" />
+    {% if not forloop.last %}<hr>{% endif %}
+</div>
+{% empty %}
+Уведомлений нет
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'LMS/base.html' %}
+
+{% block title %}оценивание {{ task.title }}{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/task.js"></script>
+
+{% for task_answer in task_answers %}
+<div id="id_task_answer_{{task_answer.id}}">
+<table cols="2" rules="all">
+    <tr><td>username</td><td>{{ task_answer.student }}</td></tr>
+    <tr><td>время сдачи</td><td>{{ task_answer.datetime_load|date:"G:i d.m.Y" }}</td></tr>
+    <tr>
+        <td>Ответ в виде файла</td>
+        <td>
+            <ul type="disc">
+                {% for file in task_answer.files.all %}
+                <li id="file_id_{{ file.id }}"><a href="/files/{{ file.id }}/{{ file.filename }}">{{ file.filename }}</a><div class="cl-btn" onClick="deleteFile({{ file.id }})"></div></li>
+                {% empty %}
+                загруженных файлов нет
+                {% endfor %}
+            </ul>
+        </td>
+    </tr>
+</table>
+оценка
+<input type="number" min="0" max="{{ task.mark_max }}" step="0.01" required id="mark_id_{{ task_answer.id }}" placeholder="max {{ task.mark_max }}" value="{{task_answer.task_answer_mark.dot_mark}}"><br>
+отзыв
+<input type="text" size="100" maxlength="100" required id="text_id_{{ task_answer.id }}" value="{{task_answer.task_answer_mark.review}}"><br>
+<button onclick="evaluateTask({{ task_answer.id }})">оценить</button>
+<!--button onclick="deleteTaskMark({{ task_answer.id }})">удалить оценку</button-->
+{% if not forloop.last %}<hr>{% endif %}
+</div>
+{% endfor %}
+{% endblock %}

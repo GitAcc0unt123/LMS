@@ -1,0 +1,36 @@
+{% extends 'LMS/base.html' %}
+
+{% block title %}тесты {{ task.title }}{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/task.js"></script>
+
+<h5>Тесты задачи</h5>
+<div id="id_task_tests">
+{% for task_test in task.task_tests.all %}
+<div id="id_task_test_{{ task_test.id }}">
+    input | output | hidden: {{ task_test.hidden }}<br>
+    <textarea readonly rows="10" cols="50">{{ task_test.input }}</textarea>
+    <textarea readonly rows="10" cols="50">{{ task_test.output }}</textarea>
+
+    <br><button onclick="deleteTaskTest({{ task_test.id }})">удалить тест</button>
+</div>
+{% empty %}
+    отсутствуют
+{% endfor %}
+</div>
+
+<hr>
+<b>Добавить тестовый случай</b>
+<div>
+<!--form action="" method="POST"-->
+input | output<br>
+{{ taskTestModelForm.input }}
+{{ taskTestModelForm.output }}<br>
+{{ taskTestModelForm.hidden.label }}{{ taskTestModelForm.hidden }}<br>
+<button onclick="createTaskTest({{ task.id }})">Создать тест</button>
+    <!--input type="submit" value="добавить" />
+</form-->
+</div>
+{% endblock %}

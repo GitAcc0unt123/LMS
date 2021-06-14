@@ -1,0 +1,111 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block style %}
+<style>
+    .bar-line {
+        display: flex;
+        padding: 10px;
+        background-color: #FF0000;
+    }
+    .bar-line__left {
+        flex: 2;
+        background-color: #9FEE00;
+    }
+    .bar-line__center {
+        flex: 3;
+        margin-left: 20px;
+        background-color: #9FEE00;
+    }
+    .bar-line__right {
+        flex: 3;
+        margin-left: 20px;
+        background-color: #9FEE00;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/task.js"></script>
+<script src="/static/LMS/test.js"></script>
+<script src="/static/LMS/course_element.js"></script>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ courseEditForm.as_p }}
+    <input type="submit" value="сохранить" />
+</form>
+<hr>
+<h5>Записанные на курс пользователи</h5>
+<ol>
+    {% for user in users %}
+    <li id='user_id_{{ user.id }}'>{{ user.username }}
+        <button onClick="excludeStudent({{ course.id }}, {{ user.id }}, &quot;{{ user.username }}&quot;, false)">исключить</button>
+        <button onClick="excludeStudent({{ course.id }}, {{ user.id }}, &quot;{{ user.username }}&quot;, true)">заблокировать</button>
+    </li>
+    {% endfor %}
+</ol>
+<hr>
+{% for element in course.course_elements.all %}
+<div id='course_element_id_{{ element.id }}'>
+    <div>
+        элемент {{ forloop.counter }}
+        <button onClick="deleteCourseElement({{ element.id }})">удалить (id={{ element.id }})</button>
+        <br>
+        <b>заголовок:</b> {{ element.title }}<br>
+        <b>описание:</b> {{ element.description }}
+    </div>
+    <div class="bar-line">
+        <div class="bar-line__left">
+            <b>Материалы</b>
+            <input type="file" class="form-control-file" id="id_upload_files" multiple/>
+            <button class="btn btn-primary" onClick="uploadFiles({{element.id}}, true)">добавить к материалам</button>
+
+            <ul>
+                {% for file in element.files.all %}
+                <li id="file_id_{{ file.id }}">
+                    <a href="/files/{{ file.id }}/{{ file.filename }}" >{{ file.filename }}</a>
+                    <button style="color: #FF0000" onclick="deleteFile({{ file.id }})">удалить</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="bar-line__center">
+            <b>Задания</b> |
+            <a href="/task/create/{{ element.id }}">добавить</a>
+            <ul>
+                {% for task in element.tasks.all %}
+                <li id='task_id_{{ task.id }}' style="margin: 0">
+                    <a href="/task/{{ task.id }}">{{ task }}</a> |
+                    <a href="/task/{{ task.id }}/edit">edit</a> |
+                    <button onClick="deleteTask({{ task.id }})">удалить (id={{ task.id }})</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="bar-line__right">
+            <b>Тесты</b> |
+            <a href="/test/create/{{ element.id }}">добавить</a>
+            <ul>
+                {% for test in element.tests.all %}
+                <li id='test_id_{{ test.id }}'>
+                    <a href="/test/{{ test.id }}">{{ test }}</a> |
+                    <a href="/test/{{ test.id }}/edit">edit</a> |
+                    <button onClick="deleteTest({{ test.id }})">удалить (id={{ test.id }})</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <hr>
+</div>
+{% endfor %}
+
+<form action="/course/{{ course.id }}/add_course_element" method="post">
+    {% csrf_token %}
+    {{ courseElementModelForm.as_p }}
+    <input type="submit" value="добавить элемент курса" />
+</form>
+{% endblock %}

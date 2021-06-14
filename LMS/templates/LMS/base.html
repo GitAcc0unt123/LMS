@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% spaceless %}
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    {% endspaceless %}
+
+    <style>
+        .message {
+            padding: 5px 10px;
+            margin: 10px 0px;
+            background: gray;
+            color: white;
+            border-radius: 5px;
+        }
+
+        #message-box {
+            position: fixed;
+            right: 0;
+            top: 15%;
+            bottom: 0;
+            z-index: 9999;
+            width: 15%;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.2);
+        }
+        .left-tab { margin-left: 20px; }
+    </style>
+    
+    {% block script %}{% endblock %}
+    {% block style %}{% endblock %}
+    {% block head %}{% endblock %}
+</head>
+
+<body id="content-background">
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+        <h5 class="my-0 mr-md-auto font-weight-normal"><a href="/">Учебные курсы</a></h5>
+        <nav class="my-2 my-md-0 mr-md-3">
+            {% if user.is_authenticated %}
+            <a class="p-2 text-dark" href="/user_courses">мои курсы</a>
+            <a class="p-2 text-dark" href="/marks">мои оценки</a>
+            <a class="p-2 text-dark" href="/settings">{{ user.username }}</a>
+            <a class="p-2 text-dark" href="/notices">уведомления({{ notice_count }})</a>
+            <a class="p-2 text-dark" href="/logout">выйти</a>
+            {% else %}
+            <a class="p-2 text-dark" href="/login">вход</a>
+            <a class="p-2 text-dark" href="/registration">регистрация</a>
+            {% endif%}
+        </nav>
+    </div>
+    <div class="left-tab">{% block content %}{% endblock %}</div>
+    <hr>
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span class="text-muted">
+                Техническая поддержка и помощь пользователям: <a href="mailto:noreply@gmail.com">noreply@gmail.com</a><br>
+                <a href="/privacy">Политика конфиденциальности</a><br>
+                <a href="/about">О сайте</a><br>
+                <a href="/faq">FAQ</a><br>
+            </span>
+        </div>
+    </footer>
+</body>
+</html>

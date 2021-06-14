@@ -1,0 +1,104 @@
+{% extends 'LMS/base.html' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block content %}
+<script src="/static/LMS/base.js"></script>
+<script src="/static/LMS/task.js"></script>
+
+<h4><a href="/course/{{ task.course_element.course.id }}">&lt;-- вернуться к курсу</a></h4>
+
+{% if user_edit_task %}
+    <a href="/task/{{ task.id }}/edit">редактировать</a><br>
+    <a href="/task/{{ task.id }}/tests">тесты</a><br>
+    <a href="/task/{{ task.id }}/evaluate">оценить</a>
+{% endif %}
+
+<h2>{{ task.title }}</h2>
+{% for line in task_description %}
+    {{ line }}<br>
+{% endfor %}
+
+<!--hr><h4>видимые тесты</h4>
+<table cols="3" rules="all">
+    <tr><td>номер теста</td><td>input</td><td>output</td></tr>
+    {% for task_test in task_tests %}
+    <tr><td>{{ task_test.order }}</td><td>{{ task_test.input }}</td><td>{{ task_test.output }}</td></tr>
+    {% endfor %}
+</table><hr-->
+
+{% if user_subscribed %}
+    <hr>
+    <h3>Состояние ответа</h3>
+    <table cols="2" rules="all">
+        <tr>
+            <td>Состояние ответа на задание</td>
+            <td>
+                {% if task_answer is None %}
+                ответ не предоставлен
+                {% elif task_answer.is_running %}
+                выполняется
+                {% elif task_answer.get_TaskAnswerMark %}
+                оценено {{ task_answer.get_TaskAnswerMark.datetime_evaluate }}
+                {% else %}
+                выполнено
+                {% endif %}
+            </td>
+        </tr>
+        <tr><td>Последний срок сдачи</td><td>{{ task.deadline_visible|date:"G:i d.m.Y" }} | {{ task.deadline_true }}</td></tr>
+        <tr><td>Кол-во тестов</td><td>{{ task.task_tests.count }}</td></tr>
+    </table>
+
+    {% if task_answer %}
+        <hr>
+        <h5>предыдущий ответ</h5>
+        время ответа: {{ task_answer.datetime_load }}<br>
+        {% if task_answer.code_file %}
+            Ответ в виде файла:
+            <a href="/files/{{ task_answer.code_file.id }}/{{ task_answer.code_file.filename }}" download>{{ task_answer.code_file.filename }}</a>
+        {% endif %}
+
+        {% if task_answer.code != '' %}
+            <code>{{ task_answer.code }}</code>
+            <!--pre>{{ task_answer.code }}</pre-->
+            <!--table cols="4" rules="all">
+                <tr><td>номер теста</td><td>статус</td><td>время</td><td>память</td></tr>
+                {% for result in task_test_executions %}
+                <tr><td>{{ result.task_test.order }}</td><td>{{ result.execution_result }}</td><td>{{ result.duration }}</td><td>{{ result.memory_Kbyte }}</td></tr>
+                {% endfor %}
+            </table-->
+        {% endif %}
+    {% endif %}
+
+    {% if CodeForm %}
+    <hr><h5>Исходный код решения (не более 1000 символов)</h5>
+    <form onsubmit="uploadCode({{ task.id }}); return false">
+        {{ CodeForm.language }}<br>
+        <code>{{ CodeForm.code }}</code><br>
+        <input type="submit" value="отправить" />
+    </form>
+    {% endif %}
+
+{% endif %}
+
+{% if task.comments_is_on %}
+<hr>
+<h4>комментарии</h4>
+<div id="id_comment_list">
+    {% for comment in comments %}
+    <div>
+        <pre>{{ comment.text }}</pre>
+        <span>
+            <a href="/user/{{ comment.user_id }}">{{ comment.user.username }}</a>
+            {{ comment.datetime }}
+            <button onclick="deleteComment({{ comment.id }})">удалить</button>
+        </span>
+    </div>
+    <hr>
+    {% endfor %}
+</div>
+<p><textarea rows="10" cols="45" id="comment_text"></textarea></p>
+<p><input type="button" value="отправить" onClick="addComment({{ task.id }})" /></p>
+{% endif %}
+
+{% endblock %}

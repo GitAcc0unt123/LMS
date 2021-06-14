@@ -1,0 +1,11 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}регистрация{% endblock %}
+
+{% block content %}
+<form method="post" action="">
+    {% csrf_token %}
+    {{ userCreationForm }}
+    <input type="submit" value="создать аккаунт" />
+</form>
+{% endblock %}

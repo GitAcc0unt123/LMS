@@ -1,0 +1,115 @@
+﻿{% extends 'LMS/base.html' %}
+
+{% block title %}учебные курсы{% endblock %}
+
+{% block style %}
+<style>
+    /*http://htmlbook.ru/css/z-index*/
+    #search-list {
+        position: relative;
+        z-index: 9999; top: 0px;
+        width: 100%;
+        background-color:whitesmoke;
+        border-bottom: 1px solid black;
+        border-right: 1px solidb black;
+        padding-left: 10;
+        list-style-type: none; /* Убираем маркеры */
+    }
+    #search-block {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="search-block" class="left-tab">
+    <input id="search-input" type="text" name="q" placeholder="Найти курс по названию" autocomplete="off" size=100 maxlength=200>
+    <ul id="search-list" hidden></ul>
+</div>
+
+<hr>
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            {% for course in courses %}
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <a align="center" href="course/{{ course.id }}"><img src="/static/LMS/missing.jpg" alt="Alternate Text" /></a>
+                    <a align="center">{{ course.title }}</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const search_input = document.getElementById('search-input');
+    const search_list = document.getElementById('search-list');
+
+    search_input.addEventListener('keyup', search);
+
+    let courses = undefined;
+    // обработка ввода поиска
+    function search(e) {
+        if (e.target.value.length < 3) {
+            if (0 < search_list.children.length) {
+                search_list.innerHTML = "";
+                search_list.hidden = true;
+            }
+        } else if (courses !== undefined) {
+            update_search_list();
+        } else {
+            load_courses();
+        }
+    }
+
+    // скачиваем инфу по курсам
+    function load_courses() {
+        fetch('/api-lms/course/', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(response => {
+            response.json().then(json => {
+                courses = json['results'].map(x => {
+                    return { "id": x["id"], "title": x["title"].toLowerCase()
+                }
+            });
+            }).catch(err => console.log(err));
+        }).catch(err => console.log(err));
+    }
+
+    // обновляет выдачу поиска
+    // рефакторить. код повторяется
+    function update_search_list() {
+        search_list.innerHTML = "";
+        search_list.hidden = false;
+        const str = search_input.value.toLowerCase();
+        const show_courses = courses.filter(x => x["title"].includes(str));
+
+        if (show_courses.length === 0) {
+            const li = document.createElement("li");
+            li.appendChild(document.createTextNode("ничего не найдено"));
+            search_list.appendChild(li);
+        }
+
+        for (let i=0; i < Math.min(show_courses.length, 10); i++) {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = 'course/' + show_courses[i]["id"];
+            a.appendChild(document.createTextNode(show_courses[i]["title"]));
+            li.appendChild(a);
+            search_list.appendChild(li);
+        }
+
+        if (10 < show_courses.length) {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = '/?q=cs';
+            a.appendChild(document.createTextNode("открыть все результаты ("+ show_courses.length +")"));
+            li.appendChild(a);
+            search_list.appendChild(li);
+        }
+    }
+</script>
+{% endblock %}
