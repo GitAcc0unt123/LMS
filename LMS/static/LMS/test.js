@@ -45,45 +45,40 @@ function createTest(course_element) {
     body['course_element'] = course_element;
     body['start'] = `${start_0} ${start_1}`; // 2020-01-01 00:00:00
     body['end'] = `${end_0} ${end_1}`;
-    body['questions'] = [
-        //{ 'question_text':'чего надо?', 'max_mark':'5.00', 'answer_type':'many1', 'answer_values':['ty', 'yu', 'ui'], 'answer_true':[0,2] },
-        //{ 'question_text':'чего надо?', 'max_mark':'3.00', 'answer_type':'free', 'answer_values':[], 'answer_true':'нет' },
-    ]
+    body['questions'] = []
 
     // готовим вопросы
     const questions = document.getElementById('id_questions').getElementsByClassName('question');
     for (let question of questions) {
         const res = {};
 
-        const answer_values = question.querySelectorAll('input[type="text"]');
-        const answer_true = question.querySelectorAll('input[type="checkbox"]');
         res['question_text'] = question.querySelector('textarea').value;
         res['max_mark'] = question.querySelector('input[type="number"]').value;
         res['answer_type'] = question.querySelector('select').value;
 
-        res['answer_values'] = [];
-        res['answer_true'] = [];
-        for (let i=0; i < answer_values.length; i++) {
-            res['answer_values'].push(answer_values[i].value);
-            if (answer_true[i].checked) {
-                res['answer_true'].push(i);
+        if (res['answer_type'] === 'free') {
+            res['answer_values'] = [];
+            res['answer_true'] = question.querySelector('input[type="text"]').value;
+        } else {
+            const selector = res['answer_type'] === 'one' ? 'input[type="radio"]' : 'input[type="checkbox"]';
+            const answer_true = question.querySelectorAll(selector);
+            const answer_values = question.querySelectorAll('input[type="text"]');
+            res['answer_values'] = [];
+            res['answer_true'] = [];
+            for (let i=0; i < answer_values.length; i++) {
+                res['answer_values'].push(answer_values[i].value);
+                if (answer_true[i].checked) {
+                    res['answer_true'].push(i);
+                }
             }
+            res['answer_true'] = res['answer_true'].join(' ');
         }
         
-        if (res['answer_type'] === 'free') {
-            if (res['answer_values'].length !== 1 || 0 < res['answer_true'].length) {
-                alert('неправильный вопрос со свободным ответом')
-                return;
-            }
-            res['answer_true'] = res['answer_values'][0];
-            res['answer_values'] = [];
-        }
         body['questions'].push(res);
     }
 
-    console.log(JSON.stringify(body));
-
-    fetch(requestTestURL, {
+    // отправляем на сервер
+    fetch('/api-lms/test/', {
         method: 'POST',
         body: JSON.stringify(body),
         headers: {
@@ -92,12 +87,16 @@ function createTest(course_element) {
             'X-CSRFToken': getCook('csrftoken'),
         }
     }).then(response => {
-        return response.json();
-    }).then(data => {
-        console.log(data);
-    }).catch((error) => {
-        console.error('Error:', error);
-    });
+        if (response.status === 201)
+            response.json().then(json => {
+                window.location.href = `/test/${json.id}`;
+                showMessage('Тест создан');
+            })
+            else {
+                showMessage('Ошибка');
+                response.json().then(json => console.log(json));
+            }
+    }).catch(err => console.log(err))
 }
 
 function finishTest(test_result_id, test_id) {

@@ -80,7 +80,7 @@
     {% if can_set_task_answer %}
         <hr>
         <input type="file" class="form-control-file" id="id_upload_files" multiple/>
-        <button class="btn btn-primary" onClick="uploadFiles({{task.id}}, false)">Загрузить файлы</button>
+        <button class="btn btn-primary" onClick="uploadFilesTask({{task.id}})">Загрузить файлы</button>
     {% endif %}
 {% endif %}
 

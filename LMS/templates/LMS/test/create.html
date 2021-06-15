@@ -14,81 +14,6 @@
 <link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
 {% endblock %}
 
-{% block script %}
-<script>
-    var questions_order = 1;
-
-    function add_question_answer() {
-        const answers = this.parentNode.getElementsByTagName('div')[0];
-
-        const label = document.createElement('label');
-        //label.for = "question2";
-        label.innerHTML = "вариант ответа";
-
-        const input = document.createElement('input');
-        //input.id = 'question2';
-        input.type = "text";
-        input.name = 'answer_values';
-        input.maxLength = 150;
-        input.size = 100;
-        input.required = true;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = "checkbox";
-        checkbox.name = 'answer_true';
-        //checkbox.value = answers.getElementsByTagName('label').length;
-
-        answers.appendChild(label);
-        answers.appendChild(input);
-        answers.appendChild(checkbox);
-        answers.appendChild(document.createElement('br'));
-    }
-    function remove_question_answer() {
-        const answers = this.parentNode.getElementsByTagName('div')[0];
-
-        answers.lastChild.remove();
-        answers.lastChild.remove();
-        answers.lastChild.remove();
-        answers.lastChild.remove();
-        answers.lastChild.remove();
-    }
-
-    function add_question() {
-        // не более 70 вопросов на странице
-        const questions_div = document.getElementById('id_questions');
-        const questions_count = questions_div.getElementsByTagName('div').length;
-
-        if (questions_count < 70) {
-            ++questions_order;
-            const clone = questions_div.getElementsByTagName('div')[0].cloneNode(true);
-
-            clone.getElementsByTagName('b')[0].innerHTML = 'вопрос ' + questions_order;
-            clone.getElementsByTagName('textarea')[0].value = "";
-
-            const inputs = clone.getElementsByTagName('input');
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = '';
-            }
-            questions_div.appendChild(clone);
-        } else {
-            showMessage('в тесте не более 70 вопросов');
-        }
-    }
-    function remove_question() {
-        // не менее 1 вопроса на странице
-        const questions_div = document.getElementById('id_questions');
-        const questions_count = questions_div.getElementsByTagName('div').length;
-
-        if (1 < questions_count) {
-            this.parentNode.remove();
-            //--questions_order;
-        } else {
-            showMessage('в тесте не менее 1 вопроса');
-        }
-    }
-</script>
-{% endblock %}
-
 {% block content %}
 <form onsubmit="createTest({{course_element_id}}); return false" >
     {{ testModelForm.as_p }}
@@ -103,10 +28,6 @@
 
             <label>Тип вопроса:</label>
             {{ testQuestionModelForm.answer_type }}
-
-            <div></div>
-            <button type="button" onclick="remove_question_answer.apply(this);">удалить последний вариант ответа</button>
-            <button type="button" onclick="add_question_answer.apply(this);">добавить вариант ответа</button>
             <hr>
         </div>
     </div>
@@ -114,8 +35,115 @@
     <br><button type="button" onclick="add_question();">добавить вопрос</button>
     <hr><input type="submit" value="создать тест" />
 </form>
-<button onclick="createTest({{course_element_id}})">жмяк</button>
 
 <script src="/static/LMS/base.js"></script>
 <script src="/static/LMS/test.js"></script>
+<script>
+    function add_question() {
+        const questions_count = questions.getElementsByTagName('div').length;
+
+        if (questions_count < 70) {
+            questions.appendChild(template.cloneNode(true));
+            questions.lastChild.getElementsByTagName('select')[0].addEventListener('change', change);
+
+            // пересчитать номера вопросов
+            const question_divs = questions.getElementsByTagName('div');
+            for(let i=0; i < question_divs.length; i++){
+                question_divs[i].getElementsByTagName('b')[0].textContent = `вопрос ${i+1}`;
+            }
+        } else {
+            showMessage('в тесте не более 70 вопросов');
+        }
+    }
+    function remove_question() {
+        const questions_count = questions.getElementsByTagName('div').length;
+
+        if (1 < questions_count) {
+            this.parentNode.remove();
+
+            // пересчитать номера вопросов
+            const question_divs = questions.getElementsByTagName('div');
+            for(let i=0; i < question_divs.length; i++){
+                question_divs[i].getElementsByTagName('b')[0].textContent = `вопрос ${i+1}`;
+            }
+        } else {
+            showMessage('в тесте не менее 1 вопроса');
+        }
+    }
+
+    let global_id = 0;
+    const questions = document.getElementById("id_questions");
+    const template = questions.getElementsByTagName('div')[0].cloneNode(true);
+    questions.getElementsByTagName('div')[0].remove();
+    
+    function change(e) {
+        if (e.srcElement.value === 'free'){
+            const input = document.createElement('input');
+            input.type = "text";
+            input.name = 'answer_values';
+            input.maxLength = 150;
+            input.size = 100;
+            input.required = true;
+
+            e.srcElement.parentNode.removeChild(e.srcElement.parentNode.getElementsByTagName('hr')[0]);
+            e.srcElement.parentNode.appendChild(document.createElement('br'));
+            e.srcElement.parentNode.appendChild(input);
+            e.srcElement.parentNode.appendChild(document.createElement('hr'));
+        } else {
+            const input = document.createElement('input');
+            input.type = "number";
+            input.required=true;
+            input.min=2;
+            input.max=10;
+            input.value=2;
+            const button = document.createElement('button');
+            button.textContent = 'сгенерировать поля';
+            button.type='button';
+            const e_type = e.srcElement.value;
+            button.onclick = (e) => {
+                // удалить input и delete
+                // создать поля для строчек
+                const count = e.srcElement.parentNode.querySelectorAll('input[type="number"]')[1].value;
+                const div = e.srcElement.parentNode;
+                div.removeChild(div.lastChild);
+                div.removeChild(div.lastChild);
+                div.removeChild(div.lastChild);
+                div.removeChild(div.lastChild);
+                const id = global_id++;
+                for(let i=0; i < count; i++){
+                    const input = document.createElement('input');
+                    input.type = "text";
+                    input.name = 'answer_values';
+                    input.maxLength = 150;
+                    input.size = 100;
+                    input.required = true;
+
+                    const checkbox = document.createElement('input');
+                    if (e_type === 'one') {
+                        checkbox.type = 'radio'
+                        checkbox.name = 'group'+id;
+                    } else {
+                        checkbox.type = "checkbox";
+                        checkbox.name = 'answer_true'+id;
+                    }
+
+                    div.appendChild(input);
+                    div.appendChild(checkbox);
+                    div.appendChild(document.createElement('br'));
+                }
+            };
+            
+            e.srcElement.parentNode.removeChild(e.srcElement.parentNode.getElementsByTagName('hr')[0]);
+            e.srcElement.parentNode.appendChild(document.createElement('br'));
+            e.srcElement.parentNode.appendChild(document.createTextNode('кол-во вариантов'));
+            e.srcElement.parentNode.appendChild(input);
+            e.srcElement.parentNode.appendChild(button);
+            e.srcElement.parentNode.appendChild(document.createElement('hr'));
+        }
+        e.srcElement.disabled=true;
+    }
+
+    questions.appendChild(template.cloneNode(true));
+    questions.lastChild.getElementsByTagName('select')[0].addEventListener('change', change);
+</script>
 {% endblock %}

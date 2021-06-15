@@ -32,11 +32,7 @@ function deleteFile(id) {
 
 // загрузить файлы на сервер
 // https://learn.javascript.ru/formdata
-function uploadFiles(id, is_course_element) {
-    const csrftoken = getCook('csrftoken');
-    const courseElementURL = '/api-lms/course-element-upload-files/';
-    const taskURL = '/api-lms/task-upload-files/';
-
+function uploadFilesCourseElement(id) {
     const input = document.getElementById('id_upload_files');
     const data = new FormData();
 
@@ -44,20 +40,98 @@ function uploadFiles(id, is_course_element) {
         data.append('files', file, file.name);
     }
 
-    fetch(`${is_course_element ? courseElementURL : taskURL}${id}/`, {
+    fetch(`/api-lms/course-element-upload-files/${id}/`, {
         method: 'POST',
         body: data,
         headers: {
             'mode': 'same-origin',
-            'X-CSRFToken': csrftoken,
+            'X-CSRFToken': getCook('csrftoken'),
         }
     }).then(response => {
-        return response.json();
-    }).then(data => {
-        console.log(data);
-    }).catch((error) => {
-        console.error('Error:', error);
-    });
+        if (response.status === 200) {
+            showMessage('Файлы загружены');
+            response.json().then(json => {
+                // update file list
+                const course_element_div = document.getElementById('course_element_id_'+id);
+                const file_list = course_element_div.querySelector('ul');
+                file_list.innerHTML = "";
+
+                for(let i=0; i < json.length; i++){
+                    const file = json[i];
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    const button = document.createElement('button');
+                    li.id = 'file_id_'+file.id;
+                    a.href = `/files/${file.id}/${file.filename}`;
+                    a.innerHTML = file.filename;
+                    button.onclick = () => { deleteFile(file.id) };
+                    button.textContent = 'удалить';
+                    button.style = 'color: #FF0000';
+                    li.appendChild(a);
+                    li.appendChild(button);
+                    file_list.appendChild(li);
+                }
+            })
+        } else {
+            showMessage('Ошибка');
+        }
+    }).catch(err => console.log(err))
+}
+
+function uploadFilesTask(id) {
+    const input = document.getElementById('id_upload_files');
+    const data = new FormData();
+
+    for (const file of input.files) {
+        data.append('files', file, file.name);
+    }
+
+    fetch(`/api-lms/task-upload-files/${id}/`, {
+        method: 'POST',
+        body: data,
+        headers: {
+            'mode': 'same-origin',
+            'X-CSRFToken': getCook('csrftoken'),
+        }
+    }).then(response => {
+        if (response.status === 200) {
+            showMessage('Файлы загружены');
+            response.json().then(json => {
+                // update table
+                const table = document.getElementsByTagName('table');
+                const rows = table[0].rows;
+
+                const files = json['files'];
+                const ul = document.createElement('ul');
+                for(let i=0; i < files.length; i++){
+                    const file = files[i];
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    const div = document.createElement('div');
+                    li.id = 'file_id_'+file.id;
+                    a.href = `/files/${file.id}/${file.filename}`;
+                    a.download=true;
+                    a.innerHTML = file.filename;
+                    div.onclick = () => { deleteFile(file.id) };
+                    div.classList.add("cl-btn");
+                    li.appendChild(a);
+                    li.appendChild(div);
+                    ul.appendChild(li);
+                }
+
+                rows[0].cells[1].innerHTML = 'отправлено для оценивания';
+                rows[rows.length-2].cells[1].innerHTML = json['datetime_load'];
+                
+                const node = rows[rows.length-1].cells[1];
+                while (node.hasChildNodes()) {
+                    node.removeChild(node.lastChild);
+                }
+                node.appendChild(ul);
+            })
+        } else {
+            showMessage('Ошибка');
+        }
+    }).catch(err => console.log(err))
 }
 
 function excludeStudent(course_id, user_id, username, black_list) {

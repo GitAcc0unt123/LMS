@@ -352,15 +352,18 @@ class TaskAnswer(models.Model):
             code_errors = []
             if self.code == '':
                 code_errors.append(ValidationError('Обязательное поле.'))
+            else:
+                # проверка импортов модулей
+                import_lines = re.findall(r'\Wfrom|import.*$', self.code)
 
-            # проверка импортов модулей
-            if re.search(r'^import\s|\simport\s', self.code):
-                code_errors.append(ValidationError('import now allowed'))
+                for line in import_lines:
+                    if not all( x in SAFE_IMPORTS+['from', 'import', 'as'] for x in re.split(r'\W+', line)):
+                        code_errors.append(ValidationError('import now allowed'))
 
-            # проверка Built-in Functions
-            for s in NOT_ALLOW_BUILT_IN_FUNCTIONS:
-                if re.search(r'^_pref_\(|[^a-z0-9]_pref_\('.replace('_pref_', s), self.code):
-                    code_errors.append(ValidationError('this built-in function not allowed'))
+                # проверка Built-in Functions
+                for s in NOT_ALLOW_BUILT_IN_FUNCTIONS:
+                    if re.search(r'^_pref_\(|[^a-z0-9]_pref_\('.replace('_pref_', s), self.code):
+                        code_errors.append(ValidationError('this built-in function not allowed'))
 
             if 0 < len(code_errors):
                 validation_errors['code'] = code_errors

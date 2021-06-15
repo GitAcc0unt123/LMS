@@ -11,6 +11,6 @@ class TaskTestCase(TestCase):
         self.course = Course.objects.create(title="курс")
         self.course_element = CourseElement.objects.create(course=self.course, title="элемент курса")
 
-    def test_1(self):
-        """"""
-        pass
+    #def test_1(self):
+    #    """"""
+     #   pass

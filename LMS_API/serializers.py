@@ -149,6 +149,7 @@ class TaskTestSerializer(serializers.ModelSerializer):
 
 class TaskAnswerSerializer(serializers.ModelSerializer):
     ''''''
+    files = FileStorageShortSerializer(many=True, read_only=True)
     #прикрутить файлы и read-only оценку если стоит
     #приделать чтобы показывал execute_answer
     class Meta:

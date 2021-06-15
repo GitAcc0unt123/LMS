@@ -61,7 +61,7 @@
         <div class="bar-line__left">
             <b>Материалы</b>
             <input type="file" class="form-control-file" id="id_upload_files" multiple/>
-            <button class="btn btn-primary" onClick="uploadFiles({{element.id}}, true)">добавить к материалам</button>
+            <button class="btn btn-primary" onClick="uploadFilesCourseElement({{element.id}})">добавить к материалам</button>
 
             <ul>
                 {% for file in element.files.all %}
@@ -92,7 +92,7 @@
                 {% for test in element.tests.all %}
                 <li id='test_id_{{ test.id }}'>
                     <a href="/test/{{ test.id }}">{{ test }}</a> |
-                    <a href="/test/{{ test.id }}/edit">edit</a> |
+                    <!--a href="/test/{{ test.id }}/edit">edit</a> |-->
                     <button onClick="deleteTest({{ test.id }})">удалить (id={{ test.id }})</button>
                 </li>
                 {% endfor %}
