@@ -9,7 +9,7 @@
 <h4><a href="/course/{{ task.course_element.course.id }}">&lt;-- вернуться к курсу</a></h4>
 
 {% if user_edit_task %}
-    <a href="/task/{{ task.id }}/edit">редактировать</a><br>
+    <a href="/task/{{ task.id }}/edit_automatic">редактировать</a><br>
     <a href="/task/{{ task.id }}/tests">тесты</a><br>
     <a href="/task/{{ task.id }}/evaluate">оценить</a>
 {% endif %}
@@ -67,6 +67,10 @@
                 <tr><td>{{ result.task_test.order }}</td><td>{{ result.execution_result }}</td><td>{{ result.duration }}</td><td>{{ result.memory_Kbyte }}</td></tr>
                 {% endfor %}
             </table-->
+            <br>Результаты тестов<br>
+            {% for result in task_answer.task_answer_executions.all %}
+                {{ result.task_test.id }} | {{ result.execution_result }}<br>
+            {% endfor %}
         {% endif %}
     {% endif %}
 

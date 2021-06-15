@@ -52,6 +52,75 @@ class CourseElementModelForm(forms.ModelForm):
         }
 
 
+class TaskExecOffModelForm(forms.ModelForm):
+    '''форма для создания и редактирования задания с ручной проверкой'''
+    class Meta:
+        model = Task
+        fields = [
+            'title',
+            'description',
+            'comments_is_on',
+            'deadline_visible',
+            'deadline_true',
+            'mark_outer',
+            'mark_max',
+            'limit_files_count',
+            'limit_files_memory_MB',
+            ]
+
+        widgets = {
+            'title':forms.TextInput(attrs={ 'size':100 }),
+            'description':forms.Textarea(attrs={ 'cols':100, 'rows':10 }),
+
+            'deadline_visible': AdminSplitDateTime(),
+            'deadline_true': AdminSplitDateTime(),
+
+            'mark_outer': forms.NumberInput(attrs={ 'min':0, 'max':1000 }),
+            'mark_max': forms.NumberInput(attrs={ 'min':0, 'max':1000 }),
+
+            'limit_files_count': forms.NumberInput(attrs={ 'max':32 }),
+            'limit_files_memory': forms.NumberInput(attrs={ 'max':128 }),
+        }
+        field_classes = {
+            # Allow specifying form field types in a ModelForm's Meta
+            'deadline_visible': forms.SplitDateTimeField,
+            'deadline_true': forms.SplitDateTimeField,
+        }
+
+class TaskExecOnModelForm(forms.ModelForm):
+    '''форма для создания и редактирования задания с автоматической проверкой'''
+    class Meta:
+        model = Task
+        fields = [
+            'title',
+            'description',
+            'comments_is_on',
+            'deadline_visible',
+            'deadline_true',
+            'mark_outer',
+            'mark_max',
+            'start_code',
+            'limit_time',
+            'limit_memory_Mbyte',
+            ]
+        widgets = {
+            'title':forms.TextInput(attrs={ 'size':100 }),
+            'description':forms.Textarea(attrs={ 'cols':100, 'rows':10 }),
+
+            'deadline_visible': AdminSplitDateTime(),
+            'deadline_true': AdminSplitDateTime(),
+
+            'mark_outer': forms.NumberInput(attrs={ 'min':0, 'max':1000 }),
+            'mark_max': forms.NumberInput(attrs={ 'min':0, 'max':1000 }),
+
+            'limit_memory_Mbyte': forms.NumberInput(attrs={ 'max':1024 }),
+        }
+        field_classes = {
+            # Allow specifying form field types in a ModelForm's Meta
+            'deadline_visible': forms.SplitDateTimeField,
+            'deadline_true': forms.SplitDateTimeField,
+        }
+
 class TaskModelForm(forms.ModelForm):
     '''форма для создания и редактирования задачи'''
     class Meta:

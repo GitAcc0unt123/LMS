@@ -55,7 +55,7 @@ def check_files() -> None:
           stdout=outputs[i],
           stderr='',
           returncode=0,
-          execution_result='0',
+          execution_result='0' if task_test.output == outputs[i] else '1',
           duration=timedelta(seconds=1),
           memory_Kbyte=1024,
       ))

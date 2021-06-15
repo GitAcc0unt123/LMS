@@ -406,7 +406,7 @@ class TestQuestionAnswerViewSet(mixins.RetrieveModelMixin,
 
     def get_permissions(self):
         if self.action == 'retrieve':
-            prem = [permissions.IsAuthenticated, (CourseSubscriberPermission&TestQuestionAnswerPermission)|CourseOwnerPermission]
+            prem = [permissions.IsAuthenticated, (CourseSubscriberPermission&TestQuestionAnswerPermission)]#|CourseOwnerPermission]
         elif self.action == 'partial_update':
             prem = [permissions.IsAuthenticated, CourseSubscriberPermission&TestQuestionAnswerPermission]
         elif self.action == 'metadata':

@@ -4,39 +4,26 @@
 
 {% block content %}
 <h2>{{ test.title }}</h2>
+тип теста: {{ test.test_type }}<br>
+случайный порядок: {{ test.shuffle }}<br>
 
 окончание в {{ deadline|date:"H:i:s" }}<br>
-<!--оставшееся время-->
-{% for question in test.test_questions.all %}
-<big><big><big><a href="/test/{{ test.id }}/result/{{ testResult.id }}/question/{{ question.id }}">{{ forloop.counter }}</a></big></big></big>
+{% for question_answer in question_answers %}
+<div id="button-list">
+<button onclick="retrieveQuestion({{ question_answer.id }})">{{ forloop.counter }}</button>
+</div>
 {% endfor %}
 <hr>
 
-<div class="bar-line">
-    <div class="bar-line__right">
-        <form action="/test/{{test.id}}/result/{{testResult.id}}/question/{{question.id}}" method="post">
-            {% csrf_token %}
-            {{ question.question_text }}<br>
-
-            {% if question.answer_type == 'free' %}
-                <input type="text" name="str" />
-            {% elif question.answer_type == 'one' %}
-                {% for answer in question_answers %}
-                    <input type="radio" name="indexes" value="{{ forloop.counter0 }}"> {{answer}}<br>
-                {% endfor %}
-            {% else %}
-                {% for answer in question_answers %}
-                    <input type="checkbox" name="indexes" value="{{ forloop.counter0 }}"> {{answer}}<br>
-                {% endfor %}
-            {% endif %}
-            <input type="submit" value="ответить на вопрос" />
-        </form>
-    </div>
-</div>
-
+<div id="info"></div>
 <hr>
+<button onclick="finishTest({{test_result.id}}, {{test.id}})">Завершить тест</button>
 
 <script src="/static/LMS/base.js"></script>
 <script src="/static/LMS/test.js"></script>
-<button onclick="finishTest({{ result_id}}, {{test.id }})">Завершить тест</button>
+<script>
+    window.onload = function() {
+        retrieveQuestion({{ current_question_answers.id }});
+    };
+</script>
 {% endblock %}

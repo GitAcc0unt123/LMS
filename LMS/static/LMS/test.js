@@ -123,3 +123,98 @@ function finishTest(test_result_id, test_id) {
         console.log(response);
     }).catch(err => console.log(err))
 }
+
+function retrieveQuestion(id) {
+    const URL = '/api-lms/test-question-answer/';
+
+    fetch(`${URL}${id}/`, {
+        method: 'GET',
+        headers: {
+            'mode': 'same-origin',
+            'X-CSRFToken': getCook('csrftoken'),
+        }
+    }).then(response => {
+        if (response.status === 200)
+            response.json().then(json => {
+                console.log(json.answer);
+                const div = document.getElementById('info');
+                div.innerHTML="";
+                div.appendChild(document.createTextNode('вопрос: ' + json.test_question));
+                div.appendChild(document.createElement('br'));
+
+                // обновляем поля с инфой из запроса
+                if (json.answer_type === 'free'){
+                    const node = document.createElement('input');
+                    node.type='text';
+                    div.appendChild(node);
+                }
+                else
+                    for(let i=0; i<json.answer_values.length; i++){
+                        const node_div = document.createElement('div');
+                        const node = document.createElement('input');
+                        node.type = json.answer_type === 'one' ? 'radio' : 'checkbox';
+                        node.name = 'indexes';
+                        node.id = json.answer_values[i];
+
+                        const label = document.createElement('label');
+                        label.for=node.id;
+                        label.textContent=node.id;
+                        label.style="padding-left: 5px";
+                        node_div.appendChild(node);
+                        node_div.appendChild(label);
+                        div.appendChild(node_div);
+                        div.appendChild(document.createElement('br'));
+                    }
+                const button = document.createElement('button');
+                button.textContent = 'ответить';
+                button.onclick = () => { 
+                    patchQuestion(id);
+                };
+                div.appendChild(button);
+            })
+        else
+            showMessage('Ошибка');
+    }).catch(err => console.log(err))
+}
+
+function patchQuestion(id) {
+    const URL = '/api-lms/test-question-answer/';
+    const info = document.getElementById('info');
+
+    const body = {}
+    const text = info.querySelector('input[type="text"]');
+    const radio = info.querySelectorAll('input[type="radio"]');
+    const checkbox = info.querySelectorAll('input[type="checkbox"]');
+
+    if (text) body['answer'] = text.value;
+
+    if (0 < radio.length || 0 < checkbox.length){
+        const values = 0 < radio.length ? radio : checkbox;
+        body['answer'] = [];
+        for (let i=0; i < values.length; i++)
+            if (values[i].checked)
+                body['answer'].push(i);
+
+        body['answer'] = body['answer'].join(' ');
+    }
+
+    fetch(`${URL}${id}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        headers: {
+            'mode': 'same-origin',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCook('csrftoken'),
+        }
+    }).then(response => {
+        if (response.status === 200)
+            response.json().then(json => {
+                showMessage('успешно')
+
+                // следующий id
+                //retrieveQuestion();
+            })
+        else
+            showMessage('Ошибка');
+    }).catch(err => console.log(err))
+}

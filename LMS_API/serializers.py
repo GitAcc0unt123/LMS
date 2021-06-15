@@ -193,13 +193,17 @@ class TestQuestionAnswerRetrieveSerializer(serializers.ModelSerializer):
     ''''''
     test_question = serializers.SlugRelatedField(slug_field='question_text', read_only=True)
     answer_type = serializers.SerializerMethodField('answer_type_func')
+    answer_values = serializers.SerializerMethodField('answer_values_func')
 
     def answer_type_func(self, test_result):
         return test_result.test_question.answer_type
 
+    def answer_values_func(self, test_result):
+        return test_result.test_question.answer_values.split('\n')
+
     class Meta:
         model = TestQuestionAnswer
-        fields = ['test_result', 'test_question', 'answer_type', 'answer']
+        fields = ['test_result', 'test_question', 'answer_type', 'answer_values', 'answer']
 
 class TestResultListSerializer(serializers.ModelSerializer):
     ''''''

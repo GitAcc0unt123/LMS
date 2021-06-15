@@ -3,6 +3,7 @@ import mimetypes
 import logging
 
 from django.http import HttpResponse, FileResponse, Http404, HttpResponseForbidden
+from django.http.response import HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.contrib.auth import login, logout, update_session_auth_hash
@@ -20,6 +21,8 @@ from .forms import (
     CourseEditModelForm,
     CourseElementModelForm,
     TaskModelForm,
+    TaskExecOnModelForm,
+    TaskExecOffModelForm,
     TaskTestModelForm,
     CodeForm,
     TestModelForm,
@@ -341,7 +344,32 @@ def task_edit(request, id):
     if not task.can_edit_task(request.user):
         return HttpResponseForbidden('нет прав для редактирования задачи')
 
-    taskModelForm = TaskModelForm(request.POST or None, instance=task)
+    if task.execute_answer:
+        return HttpResponseBadRequest('неправильная ссылка')
+
+    taskModelForm = TaskExecOffModelForm(request.POST or None, instance=task)
+
+    if taskModelForm.is_valid():
+        taskModelForm.save()
+        return redirect(f'/task/{id}')
+
+    context = {
+        'taskModelForm':taskModelForm,
+    }
+    return render(request, 'LMS/task/edit.html', context)
+
+@login_required(login_url='login')
+def task_edit_automatic(request, id):
+    """редактирование задания"""
+    task = get_object_or_404(Task, pk=id)
+
+    if not task.can_edit_task(request.user):
+        return HttpResponseForbidden('нет прав для редактирования задачи')
+
+    if not task.execute_answer:
+        return HttpResponseBadRequest('неправильная ссылка')
+
+    taskModelForm = TaskExecOnModelForm(request.POST or None, instance=task)
 
     if taskModelForm.is_valid():
         taskModelForm.save()
@@ -360,7 +388,39 @@ def task_create(request, course_element_id):
     if not course_element.course.can_edit(request.user):
         return HttpResponseForbidden('нет прав для создания задачи')
 
-    taskModelForm = TaskModelForm(request.POST or None)
+    data = request.POST.copy()
+    if (data):
+        data['execute_answer'] = False
+    taskModelForm = TaskExecOffModelForm(data or None)
+    if taskModelForm.is_valid():
+        task = taskModelForm.save(commit=False)
+        task.course_element = course_element
+
+        # найти способ получше
+        try:
+            task.validate_unique()
+            task.save()
+            return redirect(f'/task/{task.id}')
+        except Exception as e:
+            taskModelForm.add_error(None, e)
+
+    context = {
+        'taskModelForm':taskModelForm,
+    }
+    return render(request, 'LMS/task/create.html', context)
+
+@login_required
+def task_create_automatic(request, course_element_id):
+    """создать задание"""
+    course_element = get_object_or_404(CourseElement, pk=course_element_id)
+
+    if not course_element.course.can_edit(request.user):
+        return HttpResponseForbidden('нет прав для создания задачи')
+
+    data = request.POST.copy()
+    if data:
+        data['execute_answer'] = True
+    taskModelForm = TaskExecOnModelForm(data or None)
     if taskModelForm.is_valid():
         task = taskModelForm.save(commit=False)
         task.course_element = course_element
@@ -407,7 +467,6 @@ def test_view(request, id):
         return HttpResponseForbidden('вы не записаны на этот курс')
 
     active_test_result = test.get_active_test_result(request.user)
-    print(test.description)
     context = {
         'test':test,
         'test_description':test.description.split('\n'),
@@ -422,40 +481,18 @@ def test_view(request, id):
     return render(request, 'LMS/test/view.html', context)
 
 @login_required
-def test_action(request, id, result_id, question_id):
+def test_action(request, id, result_id):
     """страница для прохождения теста -"""
+    test_result = get_object_or_404(TestResult, pk=result_id)
 
-    # проверки id, прав пользователя и что запись прохождения активна
-    test_result = TestResult.objects.get(id=result_id)
     if test_result.is_finished():
         return HttpResponseForbidden('данное прохождение теста завершено')
 
-    # ответили на вопрос теста
-    if request.method == 'POST':
-        dict_POST = dict(request.POST)
-        question = TestQuestion.objects.get(id=question_id)
-        answer = request.POST['str'] if question.answer_type == 'free' else ' '.join(dict_POST['indexes'])
-        
-        obj, created = TestQuestionAnswer.objects.update_or_create(
-            test_result_id=result_id, test_question_id=question_id,
-            defaults={'datetime': timezone.now(), 'answer':answer},
-        )
-        #obj.calc_mark()
-        
-
-    # работает с текущей открытой попыткой прохождения теста
-    question = TestQuestion.objects.get(id=question_id)
-    question_answers = question.answer_values
-
-    if question_answers != '':
-        question_answers = question_answers.split('\n')
-
     context = {
-        'test':Test.objects.get(id=id),
-        'result_id':result_id,
-        'testResult':TestResult.objects.get(id=result_id),
-        'question':question,
-        'question_answers':question_answers,
+        'test': test_result.test,
+        'test_result':test_result,
+        'question_answers':test_result.test_result_questions_answers.all().order_by('id'),
+        'current_question_answers': test_result.test_result_questions_answers.order_by('id').filter(answer='').first(),
         'deadline':min(test_result.test.end, test_result.start + test_result.test.duration),
     }
     return render(request, 'LMS/test/action.html', context)
@@ -508,7 +545,7 @@ def test_start(request, id, test_result_id=None):
         if testResult is None:
             raise Http404()
 
-    return redirect(f'/test/{id}/result/{testResult.id}/question/{ test.test_questions.first().id }')
+    return redirect(f'/test/{id}/result/{testResult.id}')
 
 @require_GET
 @login_required(login_url='login')

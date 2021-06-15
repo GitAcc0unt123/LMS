@@ -74,12 +74,13 @@
         </div>
         <div class="bar-line__center">
             <b>Задания</b> |
-            <a href="/task/create/{{ element.id }}">добавить</a>
+            <a href="/task/create/{{ element.id }}">добавить ручное</a> |
+            <a href="/task/create_automatic/{{ element.id }}">добавить автоматическое</a>
             <ul>
                 {% for task in element.tasks.all %}
                 <li id='task_id_{{ task.id }}' style="margin: 0">
                     <a href="/task/{{ task.id }}">{{ task }}</a> |
-                    <a href="/task/{{ task.id }}/edit">edit</a> |
+                    <a href="/task/{{ task.id }}/{{ task.execute_answer|yesno:'edit_automatic,edit,' }}">edit</a> |
                     <button onClick="deleteTask({{ task.id }})">удалить (id={{ task.id }})</button>
                 </li>
                 {% endfor %}

@@ -27,26 +27,25 @@ urlpatterns = [
 
     path('task/<int:id>', views.task_view), # подробно задание
     path('task/<int:id>/edit', views.task_edit), # редактирование задания
+    path('task/<int:id>/edit_automatic', views.task_edit_automatic), # редактирование задания
     path('task/<int:id>/evaluate', views.task_evaluate), # оценивание работ с ручной проверкой
     path('task/<int:id>/tests', views.task_tests), # создание и удаление тестов автоматической задачи
     path('task/create/<int:course_element_id>', views.task_create), # создание задания
+    path('task/create_automatic/<int:course_element_id>', views.task_create_automatic), # создание задания
 
     path('test/<int:id>', views.test_view), # общая инфа по тесту
     #path('test/<int:id>/edit', views.test_edit), # редактирование теста
     #path('test/<int:id>/evaluate', views.test_view), # ручное оценивание тестов
-    path('test/<int:id>/action/<int:test_result_id>', views.test_view), # страница для прохождения теста
     path('test/create/<int:course_element_id>', views.test_create), # создания теста
+
     path('test/<int:id>/start', views.test_start), # начать тест
+    path('test/<int:id>/start/<int:test_result_id>', views.test_start), # продолжить тест
+
+    path('test/<int:id>/result/<int:result_id>', views.test_action), # страница прохождения теста
 
     path('files/<int:id>/<str:filename>', views.files),
 
-    ############################################################################
     # deprecate
     #path('comment_add/<int:task_id>', views.comment_add), # create comment
     path('course/<int:id>/add_course_element', views.course_element_create), # create course element
-
-    # deprecate 
-    path('test/<int:id>/start/<int:test_result_id>', views.test_start), # начать тест
-    path('test/<int:id>/result/<int:result_id>', views.test_action), # прохождение теста
-    path('test/<int:id>/result/<int:result_id>/question/<int:question_id>', views.test_action), # прохождение теста
 ]
