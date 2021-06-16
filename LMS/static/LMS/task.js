@@ -126,6 +126,7 @@ function createTaskTest(task_id) {
                 
                 task_tests.appendChild(div);
     
+                input.value = output.value = '';
                 showMessage('Тест создан');
             } else {
                 showMessage('Ошибка.' + 'Output: ' + json.output, 5000);

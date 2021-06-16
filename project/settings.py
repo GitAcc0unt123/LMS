@@ -196,14 +196,10 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_BEAT_SCHEDULE = {
-   'check-executions-every-minute': {
-    'task': 'LMS.celery_tasks.check_files',
-    'schedule': crontab(minute='*/1'), # кажд. минуту
-   },
-   'delete-comments-notices-files-everyday': {
-     'task': 'LMS.celery_tasks.everyday',
-     'schedule': crontab(hour=3, minute=0), # кажд. день в 03:00
-  },
+    'delete-comments-notices-files-everyday': {
+        'task': 'LMS.celery_tasks.everyday',
+        'schedule': crontab(hour=3, minute=0), # кажд. день в 03:00
+    },
 }
 
 # логирование

@@ -26,6 +26,7 @@ app.autodiscover_tasks()
 
 # 1. запуск redis
 # консоль 1> redis-server
+# если порт занят, то sudo service redis-server stop
 
 # 2. запуск django приложения
 # (env38_64) консоль 2> python manage.py runserver
